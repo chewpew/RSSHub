@@ -1,12 +1,13 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
 
 export const route: Route = {
-    path: '/npc/:caty',
+    path: '/:caty',
     categories: ['government'],
     example: '/gov/npc/c183',
     parameters: { caty: '分类名，支持形如 `http://www.npc.gov.cn/npc/c2/*/` 的网站，传入 npc 之后的参数' },
@@ -27,8 +28,8 @@ export const route: Route = {
     maintainers: ['233yeee'],
     handler,
     description: `| 立法 | 监督 | 代表 | 理论 | 权威发布 | 滚动新闻 |
-  | ---- | ---- | ---- | ---- | -------- | -------- |
-  | c183 | c184 | c185 | c189 | c12435   | c10134   |`,
+| ---- | ---- | ---- | ---- | -------- | -------- |
+| c183 | c184 | c185 | c189 | c12435   | c10134   |`,
 };
 
 async function handler(ctx) {

@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 
 export const route: Route = {
@@ -27,8 +28,8 @@ export const route: Route = {
     maintainers: ['TonyRL'],
     handler,
     description: `| Russian Politics & Diplomacy | World | Business & Economy | Military & Defense | Science & Space | Emergencies | Society & Culture | Press Review | Sports |
-  | ---------------------------- | ----- | ------------------ | ------------------ | --------------- | ----------- | ----------------- | ------------ | ------ |
-  | politics                     | world | economy            | defense            | science         | emergencies | society           | pressreview  | sports |`,
+| ---------------------------- | ----- | ------------------ | ------------------ | --------------- | ----------- | ----------------- | ------------ | ------ |
+| politics                     | world | economy            | defense            | science         | emergencies | society           | pressreview  | sports |`,
 };
 
 async function handler(ctx) {
@@ -39,7 +40,7 @@ async function handler(ctx) {
 
     const sectionId = $('.container .section-page')
         .attr('ng-init')
-        .match(/sectionId\s*=\s*(\d+?);/);
+        .match(/sectionId\s*=\s*(\d+);/);
 
     const { data: response } = await got.post('https://tass.com/userApi/categoryNewsList', {
         json: {

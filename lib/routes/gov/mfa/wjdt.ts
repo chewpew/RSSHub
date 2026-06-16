@@ -1,9 +1,10 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
 const categories = {
     gjldrhd: 'gjldrhd_674881',
@@ -18,21 +19,21 @@ const categories = {
 };
 
 export const route: Route = {
-    path: ['/fmprc/:category?', '/mfa/wjdt/:category?'],
-    name: 'Unknown',
+    path: '/wjdt/:category?',
+    name: '外交动态',
     maintainers: ['nicolaszf', 'nczitzk'],
     handler,
     description: `| 分类       | category |
-  | ---------- | -------- |
-  | 领导人活动 | gjldrhd  |
-  | 外事日程   | wsrc     |
-  | 部领导活动 | wjbxw    |
-  | 业务动态   | sjxw     |
-  | 发言人表态 | fyrbt    |
-  | 吹风会     | cfhsl    |
-  | 大使任免   | dsrm     |
-  | 驻外报道   | zwbd     |
-  | 政策解读   | zcjd     |`,
+| ---------- | -------- |
+| 领导人活动 | gjldrhd  |
+| 外事日程   | wsrc     |
+| 部领导活动 | wjbxw    |
+| 业务动态   | sjxw     |
+| 发言人表态 | fyrbt    |
+| 吹风会     | cfhsl    |
+| 大使任免   | dsrm     |
+| 驻外报道   | zwbd     |
+| 政策解读   | zcjd     |`,
 };
 
 async function handler(ctx) {
@@ -56,7 +57,7 @@ async function handler(ctx) {
 
             return {
                 title: item.text(),
-                link: item.attr('href').replace(/^\./, currentUrl),
+                link: item.attr('href').replace(/^\./, () => currentUrl),
             };
         });
 

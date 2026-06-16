@@ -1,9 +1,10 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
-import { load } from 'cheerio';
+import timezone from '@/utils/timezone';
 
 const rootUrl = 'https://www.chinanews.com.cn';
 
@@ -28,13 +29,14 @@ async function handler(ctx) {
         url: currentUrl,
     });
     const $ = load(response.data);
+    const limit = ctx.req.query('limit');
     const list = $('a', '.dd_bt')
-        .map((_, item) => ({
+        .toArray()
+        .map((item) => ({
             link: rootUrl + $(item).attr('href'),
             title: $(item).text(),
         }))
-        .get()
-        .slice(0, ctx.req.query('limit') ? (Number.parseInt(ctx.req.query('limit')) > 125 ? 125 : Number.parseInt(ctx.req.query('limit'))) : 50);
+        .slice(0, limit ? Number.parseInt(limit) : 50);
 
     const items = await Promise.all(
         list.map((item) =>
@@ -60,9 +62,7 @@ async function handler(ctx) {
                     item.description = content('div.left_zw').html();
                     const info = content('div.left-t')
                         .contents()
-                        .filter(function () {
-                            return this.type === 'text';
-                        })
+                        .filter((_, el) => el.type === 'text')
                         .text()
                         .split('　');
                     item.pubDate = timezone(parseDate(info[0], 'YYYY年MM月DD日 HH:mm'), +8);

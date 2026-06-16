@@ -1,14 +1,12 @@
-import { Route } from '@/types';
-import { getCurrentPath } from '@/utils/helpers';
-const __dirname = getCurrentPath(import.meta.url);
+import { load } from 'cheerio';
 
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
-import { art } from '@/utils/render';
-import path from 'node:path';
+import timezone from '@/utils/timezone';
+
+import { renderDescription } from './templates/description';
 
 export const route: Route = {
     path: ['/lc_report/:id?', '/report/:id?'],
@@ -27,13 +25,13 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     description: `| 罗戈研究出品 | 物流报告       | 绿色双碳报告          |
-  | ------------ | -------------- | --------------------- |
-  | Report       | IndustryReport | GreenDualCarbonReport |`,
+| ------------ | -------------- | --------------------- |
+| Report       | IndustryReport | GreenDualCarbonReport |`,
 };
 
 async function handler(ctx) {
     const { id = 'Report' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 11;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 11;
 
     const rootUrl = 'https://www.logclub.com';
     const currentUrl = new URL('lc_report', rootUrl).href;
@@ -48,9 +46,9 @@ async function handler(ctx) {
     let items = response.list.slice(0, limit).map((item) => ({
         title: item.title,
         link: new URL(`front/lc_report/get_report_info/${item.id}`, rootUrl).href,
-        description: art(path.join(__dirname, 'templates/description.art'), {
+        description: renderDescription({
             image: {
-                src: item.img_url?.split(/\?/)[0] ?? undefined,
+                src: item.img_url?.split(/\?/, 1)[0] ?? undefined,
                 alt: item.title,
             },
         }),
@@ -70,9 +68,9 @@ async function handler(ctx) {
                 content('img').each((_, el) => {
                     el = content(el);
                     el.replaceWith(
-                        art(path.join(__dirname, 'templates/description.art'), {
+                        renderDescription({
                             image: {
-                                src: el.prop('src')?.split(/\?/)[0] ?? undefined,
+                                src: el.prop('src')?.split(/\?/, 1)[0] ?? undefined,
                                 alt: el.prop('title'),
                             },
                         })
@@ -80,7 +78,7 @@ async function handler(ctx) {
                 });
 
                 item.title = content('h1').first().text();
-                item.description += art(path.join(__dirname, 'templates/description.art'), {
+                item.description += renderDescription({
                     description: content('div.article-cont').html(),
                 });
                 item.author = content('div.lc-infos a')
@@ -119,6 +117,6 @@ async function handler(ctx) {
         icon,
         logo: icon,
         subtitle: subtitle.replaceAll(',', ''),
-        author: subtitle.split(/,/)[0],
+        author: subtitle.split(/,/, 1)[0],
     };
 }

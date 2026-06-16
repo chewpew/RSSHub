@@ -1,11 +1,12 @@
+// oxlint-disable unicorn/prefer-code-point unicorn-js/prefer-single-call unicorn-js/prefer-array-from-map unicorn/prefer-spread
 // Credit:
 // https://blog.csdn.net/zjq592767809/article/details/126512798
 // https://blog.csdn.net/zhoumi_/article/details/126659351
 
-/* eslint-disable @typescript-eslint/no-unused-expressions */
+// oxlint-disable @typescript-eslint/no-unused-expressions
 
 function i(e, t, n) {
-    (t[n] = 255 & (e >>> 24)), (t[n + 1] = 255 & (e >>> 16)), (t[n + 2] = 255 & (e >>> 8)), (t[n + 3] = 255 & e);
+    ((t[n] = 255 & (e >>> 24)), (t[n + 1] = 255 & (e >>> 16)), (t[n + 2] = 255 & (e >>> 8)), (t[n + 3] = 255 & e));
 }
 function B(e, t) {
     return ((255 & e[t]) << 24) | ((255 & e[t + 1]) << 16) | ((255 & e[t + 2]) << 8) | (255 & e[t + 3]);
@@ -16,7 +17,7 @@ function Q(e, t) {
 function G(e) {
     const t = Array.from({ length: 4 });
     const n = Array.from({ length: 4 });
-    i(e, t, 0), (n[0] = h.zb[255 & t[0]]), (n[1] = h.zb[255 & t[1]]), (n[2] = h.zb[255 & t[2]]), (n[3] = h.zb[255 & t[3]]);
+    (i(e, t, 0), (n[0] = h.zb[255 & t[0]]), (n[1] = h.zb[255 & t[1]]), (n[2] = h.zb[255 & t[2]]), (n[3] = h.zb[255 & t[3]]));
     const r = B(n, 0);
     return r ^ Q(r, 2) ^ Q(r, 10) ^ Q(r, 18) ^ Q(r, 24);
 }
@@ -28,20 +29,19 @@ const __g = {
             for (let o = e.slice(16 * i, 16 * (i + 1)), c = 0; c < 16; c++) {
                 a[c] = o[c] ^ t[c];
             }
-            // eslint-disable-next-line unicorn/prefer-spread
-            (t = __g.r(a)), (n = n.concat(t)), i++;
+            ((t = __g.r(a)), (n = n.concat(t)), i++);
         }
         return n;
     },
     r(e) {
         const t = Array.from({ length: 16 });
         const n = Array.from({ length: 36 });
-        (n[0] = B(e, 0)), (n[1] = B(e, 4)), (n[2] = B(e, 8)), (n[3] = B(e, 12));
+        ((n[0] = B(e, 0)), (n[1] = B(e, 4)), (n[2] = B(e, 8)), (n[3] = B(e, 12)));
         for (let r = 0; r < 32; r++) {
             const o = G(n[r + 1] ^ n[r + 2] ^ n[r + 3] ^ h.zk[r]);
             n[r + 4] = n[r] ^ o;
         }
-        return i(n[35], t, 0), i(n[34], t, 4), i(n[33], t, 8), i(n[32], t, 12), t;
+        return (i(n[35], t, 0), i(n[34], t, 4), i(n[33], t, 8), i(n[32], t, 12), t);
     },
 };
 const h = {
@@ -94,7 +94,6 @@ const preProcess = (md5Str) => {
     const __g_r = __g.r(new_md5_charCodeAt_arr);
     const md5CharCodeAtBackArr = md5CharCodeAtArr.slice(16, 48);
     const __g_x = __g.x(md5CharCodeAtBackArr, __g_r);
-    // eslint-disable-next-line unicorn/prefer-spread
     return __g_r.concat(__g_x);
 };
 

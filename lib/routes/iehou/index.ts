@@ -1,14 +1,14 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
 
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
 export const handler = async (ctx) => {
     const { category = '' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 100;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 100;
 
     const rootUrl = 'https://iehou.com';
     const currentUrl = new URL(category ? `page-${category}.htm` : '', rootUrl).href;
@@ -86,14 +86,13 @@ export const route: Route = {
     handler,
     example: '/iehou',
     parameters: { category: '分类，默认为空，即最新线报，可在对应分类页 URL 中找到' },
-    description: `:::tip
-  若订阅 [24小时热门线报](https://iehou.com/page-dayhot.htm)，网址为 \`https://iehou.com/page-dayhot.htm\`。截取 \`https://iehou.com/page-\` 到末尾 \`.htm\` 的部分 \`dayhot\` 作为参数填入，此时路由为 [\`/iehou/dayhot\`](https://rsshub.app/iehou/dayhot)。
-  :::
-  
-  | [最新线报](https://iehou.com/) | [24 小时热门](https://iehou.com/page-dayhot.htm) | [一周热门](https://iehou.com/page-weekhot.htm) |
-  | ------------------------------ | ------------------------------------------------ | ---------------------------------------------- |
-  | [](https://rsshub.app/iehou)   | [dayhot](https://rsshub.app/iehou/dayhot)        | [weekhot](https://rsshub.app/iehou/weekhot)    |
-  `,
+    description: `::: tip
+若订阅 [24 小时热门线报](https://iehou.com/page-dayhot.htm)，网址为 \`https://iehou.com/page-dayhot.htm\`。截取 \`https://iehou.com/page-\` 到末尾 \`.htm\` 的部分 \`dayhot\` 作为参数填入，此时路由为 [\`/iehou/dayhot\`](https://rsshub.app/iehou/dayhot)。
+:::
+
+| [最新线报](https://iehou.com/) | [24 小时热门](https://iehou.com/page-dayhot.htm) | [一周热门](https://iehou.com/page-weekhot.htm) |
+| ------------------------------ | ------------------------------------------------ | ---------------------------------------------- |
+| [](https://rsshub.app/iehou)   | [dayhot](https://rsshub.app/iehou/dayhot)        | [weekhot](https://rsshub.app/iehou/weekhot)    |`,
     categories: ['new-media'],
 
     features: {

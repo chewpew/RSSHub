@@ -1,7 +1,9 @@
-import { namespaces } from '@/registry';
+import type { RouteHandler } from '@hono/zod-openapi';
+import { createRoute, z } from '@hono/zod-openapi';
 import { parse } from 'tldts';
-import { RadarDomain } from '@/types';
-import { z, createRoute, RouteHandler } from '@hono/zod-openapi';
+
+import { namespaces } from '@/registry';
+import type { RadarDomain } from '@/types';
 
 const radar: {
     [domain: string]: RadarDomain;
@@ -17,12 +19,12 @@ for (const namespace in namespaces) {
                 const subdomain = parsedDomain.subdomain || '.';
                 const domain = parsedDomain.domain;
                 if (domain) {
-                    if (!radar[domain]) {
+                    if (!Object.hasOwn(radar, domain)) {
                         radar[domain] = {
                             _name: namespaces[namespace].name,
                         } as RadarDomain;
                     }
-                    if (!radar[domain][subdomain]) {
+                    if (!Object.hasOwn(radar[domain], subdomain)) {
                         radar[domain][subdomain] = [];
                     }
                     radar[domain][subdomain].push({
@@ -53,13 +55,14 @@ const ParamsSchema = z.object({
 const route = createRoute({
     method: 'get',
     path: '/radar/rules/{domain}',
+    description: 'Radar rules for a domain name',
     tags: ['Radar'],
     request: {
         params: ParamsSchema,
     },
     responses: {
         200: {
-            description: 'Radar rules for a domain name (does not support subdomains)',
+            description: 'Radar rules for a domain name (no subdomains)',
         },
     },
 });
@@ -69,4 +72,4 @@ const handler: RouteHandler<typeof route> = (ctx) => {
     return ctx.json(radar[domain]);
 };
 
-export { route, handler };
+export { handler, route };

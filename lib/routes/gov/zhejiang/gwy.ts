@@ -1,11 +1,12 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 
 export const route: Route = {
-    path: '/zhejiang/gwy/:category?/:column?',
+    path: '/gwy/:category?/:column?',
     categories: ['government'],
     example: '/gov/zhejiang/gwy/1',
     parameters: { category: '分类，见下表，默认为全部', column: '地市专栏，见下表，默认为全部' },
@@ -20,7 +21,7 @@ export const route: Route = {
     radar: [
         {
             source: ['zjks.gov.cn/zjgwy/website/init.htm', 'zjks.gov.cn/zjgwy/website/queryDetail.htm', 'zjks.gov.cn/zjgwy/website/queryMore.htm'],
-            target: '/zhejiang/gwy',
+            target: '/gwy',
         },
     ],
     name: '通知',
@@ -28,33 +29,33 @@ export const route: Route = {
     handler,
     url: 'zjks.gov.cn/zjgwy/website/init.htm',
     description: `| 分类         | id |
-  | ------------ | -- |
-  | 重要通知     | 1  |
-  | 招考公告     | 2  |
-  | 招考政策     | 3  |
-  | 面试体检考察 | 4  |
-  | 录用公示专栏 | 5  |
+| ------------ | -- |
+| 重要通知     | 1  |
+| 招考公告     | 2  |
+| 招考政策     | 3  |
+| 面试体检考察 | 4  |
+| 录用公示专栏 | 5  |
 
-  | 地市         | id    |
-  | ------------ | ----- |
-  | 浙江省       | 133   |
-  | 浙江省杭州市 | 13301 |
-  | 浙江省宁波市 | 13302 |
-  | 浙江省温州市 | 13303 |
-  | 浙江省嘉兴市 | 13304 |
-  | 浙江省湖州市 | 13305 |
-  | 浙江省绍兴市 | 13306 |
-  | 浙江省金华市 | 13307 |
-  | 浙江省衢州市 | 13308 |
-  | 浙江省舟山市 | 13309 |
-  | 浙江省台州市 | 13310 |
-  | 浙江省丽水市 | 13311 |
-  | 省级单位     | 13317 |`,
+| 地市         | id    |
+| ------------ | ----- |
+| 浙江省       | 133   |
+| 浙江省杭州市 | 13301 |
+| 浙江省宁波市 | 13302 |
+| 浙江省温州市 | 13303 |
+| 浙江省嘉兴市 | 13304 |
+| 浙江省湖州市 | 13305 |
+| 浙江省绍兴市 | 13306 |
+| 浙江省金华市 | 13307 |
+| 浙江省衢州市 | 13308 |
+| 浙江省舟山市 | 13309 |
+| 浙江省台州市 | 13310 |
+| 浙江省丽水市 | 13311 |
+| 省级单位     | 13317 |`,
 };
 
 async function handler(ctx) {
     const { category, column } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 50;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 50;
 
     const rootUrl = 'http://gwy.zjks.gov.cn';
     const currentUrl = new URL(`zjgwy/website/${category ? 'queryMore' : 'init'}.htm`, rootUrl).href;

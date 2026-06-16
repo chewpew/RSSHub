@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
 
@@ -12,7 +13,7 @@ const categories = {
 };
 
 export const route: Route = {
-    path: '/nrta/news/:category?',
+    path: '/news/:category?',
     categories: ['government'],
     example: '/gov/nrta/news',
     parameters: { category: '资讯类别，可从地址中获取，默认为总局要闻' },
@@ -28,8 +29,8 @@ export const route: Route = {
     maintainers: ['yuxinliu-alex'],
     handler,
     description: `| 总局要闻 | 公告公示 | 工作动态 | 其他 |
-  | -------- | -------- | -------- | ---- |
-  | 112      | 113      | 114      |      |`,
+| -------- | -------- | -------- | ---- |
+| 112      | 113      | 114      |      |`,
 };
 
 async function handler(ctx) {
@@ -44,7 +45,7 @@ async function handler(ctx) {
         url: currentUrl,
     });
 
-    const regex = /<!\[cdata\[([\S\s]*?)]]>(?=\s*<)/gi;
+    const regex = /<!\[cdata\[([\s\S]*?)\]\]>(?=\s*<)/gi;
     const data = response.data.replaceAll(regex, '$1');
 
     const $ = load(data, {
@@ -52,13 +53,13 @@ async function handler(ctx) {
     });
 
     const list = $('a', 'record')
-        .map((_, item) => {
+        .toArray()
+        .map((item) => {
             item = $(item);
             return {
                 link: item.attr('href'),
             };
-        })
-        .get();
+        });
     const items = await Promise.all(
         list.map((item) =>
             cache.tryGet(item.link, async () => {
@@ -76,7 +77,7 @@ async function handler(ctx) {
         )
     );
     return {
-        title: category in categories ? categories[category] : '其他',
+        title: Object.hasOwn(categories, category) ? categories[category] : '其他',
         link: `http://www.nrta.gov.cn/col/col${category}/index.html`,
         description: '国家广播电视总局',
         language: 'zh-cn',

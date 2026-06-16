@@ -1,6 +1,7 @@
-import { Route } from '@/types';
-import cache from '@/utils/cache';
 import { load } from 'cheerio';
+
+import type { Route } from '@/types';
+import cache from '@/utils/cache';
 import got from '@/utils/got';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
@@ -38,12 +39,12 @@ export const route: Route = {
     maintainers: ['KingJem'],
     handler,
     description: `| 推荐    | TMT | 金融    | 地产   | 消费    | 医药  | 酒业 | IPO 观察 |
-  | ------- | --- | ------- | ------ | ------- | ----- | ---- | -------- |
-  | tuijian | TMT | jinrong | dichan | xiaofei | yiyao | wine | IPO      |
+| ------- | --- | ------- | ------ | ------- | ----- | ---- | -------- |
+| tuijian | TMT | jinrong | dichan | xiaofei | yiyao | wine | IPO      |
 
-  > Note: The default news num is \`30\`.
+> Note: The default news num is \`30\`.
 
-  > 注意：默认新闻条数是 \`30\`。`,
+> 注意：默认新闻条数是 \`30\`。`,
 };
 
 async function handler(ctx) {
@@ -55,15 +56,15 @@ async function handler(ctx) {
     const $ = load(data);
     const categoryTitle = $('.list-hd strong').text();
     const listCategory = `中华网-财经-${categoryTitle}新闻`;
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 30;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 30;
     const detailsUrls = $('.item-con-inner')
-        .map((_, item) => {
+        .toArray()
+        .map((item) => {
             item = $(item);
             return {
                 link: item.find('.tit>a').attr('href'),
             };
         })
-        .get()
         .filter((item) => item.link !== void 0)
         .slice(0, limit);
 

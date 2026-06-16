@@ -1,9 +1,10 @@
-import { Route } from '@/types';
-import cache from '@/utils/cache';
-import got from '@/utils/got';
 import { load } from 'cheerio';
 
-import { rootUrl, getItems, getItemInfo, processItems } from './util';
+import type { Route } from '@/types';
+import cache from '@/utils/cache';
+import got from '@/utils/got';
+
+import { getItemInfo, getItems, processItems, rootUrl } from './util';
 
 export const route: Route = {
     path: '/:id?/:downLinkType?',
@@ -28,20 +29,20 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     url: 'newzmz.com/',
-    description: `:::tip
-  [雪国列车 (剧版)](https://nzmz.xyz/details-qEzRyY3v.html) 的下载页 URL 为 \`https://v.ys99.xyz/view/qEzRyY3v.html\`，即剧集 id 为 \`qEzRyY3v\`
-  :::`,
+    description: `::: tip
+[雪国列车 (剧版)](https://nzmz.xyz/details-qEzRyY3v.html) 的下载页 URL 为 \`https://v.ys99.xyz/view/qEzRyY3v.html\`，即剧集 id 为 \`qEzRyY3v\`
+:::`,
 };
 
 async function handler(ctx) {
     const { id = '1', downLinkType = '磁力链' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 50;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 50;
 
     // If the id is not composed solely of digits,
     // then consider it as the id of a movie or TV show;
     // otherwise, consider it as the id for the category.
 
-    const isCategory = !isNaN(id);
+    const isCategory = !Number.isNaN(id);
 
     const currentUrl = new URL(isCategory ? 'index.html' : `details-${id}.html`, rootUrl).href;
 
@@ -76,7 +77,7 @@ async function handler(ctx) {
 
     items = items.flat();
 
-    const headerTitle = isCategory ? $('div.rowMod').eq(Number.parseInt(id, 10)).find('h2.row-header-title').text() : '';
+    const headerTitle = isCategory ? $('div.rowMod').eq(Number(id)).find('h2.row-header-title').text() : '';
     const title = `${$('title').text()}${headerTitle ? ` - ${headerTitle}` : ''}`;
     const icon = $('link[rel="shortcut icon"]').prop('href');
 

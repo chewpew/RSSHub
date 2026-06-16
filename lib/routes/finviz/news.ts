@@ -1,9 +1,11 @@
-import { Route } from '@/types';
-import got from '@/utils/got';
 import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
-import { parseDate } from '@/utils/parse-date';
+
 import InvalidParameterError from '@/errors/types/invalid-parameter';
+import type { Route } from '@/types';
+import { ViewType } from '@/types';
+import got from '@/utils/got';
+import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
 const categories = {
     news: 0,
@@ -13,8 +15,14 @@ const categories = {
 export const route: Route = {
     path: '/:category?',
     categories: ['finance'],
+    view: ViewType.Articles,
     example: '/finviz',
-    parameters: { category: 'Category, see below, News by default' },
+    parameters: {
+        category: {
+            description: 'Category, see below, News by default',
+            options: Object.keys(categories).map((key) => ({ value: key, label: key })),
+        },
+    },
     features: {
         requireConfig: false,
         requirePuppeteer: false,
@@ -33,13 +41,13 @@ export const route: Route = {
     handler,
     url: 'finviz.com/news.ashx',
     description: `| News | Blogs |
-  | ---- | ---- |
-  | news | blogs |`,
+| ---- | ----- |
+| news | blogs |`,
 };
 
 async function handler(ctx) {
     const { category = 'News' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 200;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 200;
 
     if (!Object.hasOwn(categories, category.toLowerCase())) {
         throw new InvalidParameterError(`No category '${category}'.`);

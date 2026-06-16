@@ -1,7 +1,8 @@
-import { Route } from '@/types';
-import ofetch from '@/utils/ofetch';
 import * as cheerio from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
+import ofetch from '@/utils/ofetch';
 
 const jjmhw = 'http://www.jjmhw.cc';
 
@@ -21,7 +22,7 @@ const getLatestAddress = () =>
 
 const handler = async (ctx) => {
     const { id } = ctx.req.param();
-    const limit = Number.parseInt(ctx.req.query('limit'), 10) || 10;
+    const limit = Number(ctx.req.query('limit')) || 10;
     const addresses = (await getLatestAddress()) as string[];
     const link = `${addresses[0]}book/${id}`;
 
@@ -30,7 +31,7 @@ const handler = async (ctx) => {
 
     const list = $('#detail-list-select > li > a')
         .toArray()
-        .reverse()
+        .toReversed()
         .slice(0, limit)
         .map((item) => {
             const $item = $(item);
@@ -81,4 +82,7 @@ export const route: Route = {
     maintainers: ['junfengP'],
     handler,
     url: 'www.jjmhw.cc',
+    features: {
+        nsfw: true,
+    },
 };

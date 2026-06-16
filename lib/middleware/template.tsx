@@ -1,10 +1,10 @@
-import { rss3, json, RSS, Atom } from '@/utils/render';
-import { config } from '@/config';
-import { collapseWhitespace, convertDateToISO8601 } from '@/utils/common-utils';
 import type { MiddlewareHandler } from 'hono';
-import { Data } from '@/types';
 
+import { config } from '@/config';
+import type { Data } from '@/types';
 import cacheModule from '@/utils/cache/index';
+import { collapseWhitespace, convertDateToISO8601 } from '@/utils/common-utils';
+import { Atom, json, RSS, rss3 } from '@/utils/render';
 
 const middleware: MiddlewareHandler = async (ctx, next) => {
     // Set RSS <ttl> (minute) according to the availability of cache
@@ -13,6 +13,11 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
     // The minimum <ttl> is limited to 1 minute to prevent potential misuse
     const ttl = (cacheModule.status.available && Math.trunc(config.cache.routeExpire / 60)) || 1;
     await next();
+
+    const apiData = ctx.get('apiData');
+    if (apiData) {
+        return ctx.json(apiData);
+    }
 
     const data: Data = ctx.get('data');
     const outputType = ctx.req.query('format') || 'rss';
@@ -23,7 +28,7 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
             return ctx.json(ctx.get('json') || { message: 'plugin does not set debug json' });
         }
 
-        if (/(\d+)\.debug\.html$/.test(outputType)) {
+        if (/\d+\.debug\.html$/.test(outputType)) {
             const index = Number.parseInt(outputType.match(/(\d+)\.debug\.html$/)?.[1] || '0');
             return ctx.html(data?.item?.[index]?.description || `data.item[${index}].description not found`);
         }
@@ -53,7 +58,8 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
                     // https://stackoverflow.com/questions/1497885/remove-control-characters-from-php-string/1497928#1497928
                     // remove unicode control characters
                     // see #14940 #14943 #15262
-                    item.description = item.description.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u200B\uFFFF]/g, '');
+                    // oxlint-disable-next-line no-control-regex
+                    item.description = item.description.replaceAll(/[\u0000-\u0009\v\f\u000E-\u001F\u007F\u200B\uFFFF]/g, '');
                 }
 
                 if (typeof item.author === 'string') {
@@ -74,8 +80,16 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
                 }
 
                 if (outputType !== 'rss') {
-                    item.pubDate && (item.pubDate = convertDateToISO8601(item.pubDate) || '');
-                    item.updated && (item.updated = convertDateToISO8601(item.updated) || '');
+                    try {
+                        item.pubDate && (item.pubDate = convertDateToISO8601(item.pubDate) || '');
+                    } catch {
+                        item.pubDate = '';
+                    }
+                    try {
+                        item.updated && (item.updated = convertDateToISO8601(item.updated) || '');
+                    } catch {
+                        item.updated = '';
+                    }
                 }
             }
         }
@@ -94,22 +108,24 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
         return ctx.json(result);
     }
 
+    if (ctx.get('redirect')) {
+        return ctx.redirect(ctx.get('redirect'), 301);
+    }
     if (ctx.get('no-content')) {
         return ctx.body(null);
-    } else {
-        // retain .ums for backward compatibility
-        switch (outputType) {
-            case 'ums':
-            case 'rss3':
-                return ctx.json(rss3(result));
-            case 'json':
-                ctx.header('Content-Type', 'application/feed+json; charset=UTF-8');
-                return ctx.body(json(result));
-            case 'atom':
-                return ctx.render(<Atom data={result} />);
-            default:
-                return ctx.render(<RSS data={result} />);
-        }
+    }
+    // retain .ums for backward compatibility
+    switch (outputType) {
+        case 'ums':
+        case 'rss3':
+            return ctx.json(rss3(result));
+        case 'json':
+            ctx.header('Content-Type', 'application/feed+json; charset=UTF-8');
+            return ctx.body(json(result));
+        case 'atom':
+            return ctx.render(<Atom data={result} />);
+        default:
+            return ctx.render(<RSS data={result} />);
     }
 };
 

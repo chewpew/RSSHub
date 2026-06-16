@@ -1,10 +1,12 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import { extractDoc, renderVideo } from './utils';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
+
+import { extractDoc, renderVideo } from './utils';
 
 export const route: Route = {
     path: '/feng/:id/:type',
@@ -23,8 +25,8 @@ export const route: Route = {
     maintainers: ['Jamch'],
     handler,
     description: `| 文章 | 视频  |
-  | ---- | ----- |
-  | doc  | video |`,
+| ---- | ----- |
+| doc  | video |`,
 };
 
 async function handler(ctx) {
@@ -65,7 +67,7 @@ async function handler(ctx) {
                 const _allData = JSON.parse(
                     $('script')
                         .text()
-                        .match(/var allData = ({.*?});/)[1]
+                        .match(/var allData = (\{.*?\});/)[1]
                 );
                 if (type === 'doc') {
                     item.description = extractDoc(_allData.docData.contentData.contentList);

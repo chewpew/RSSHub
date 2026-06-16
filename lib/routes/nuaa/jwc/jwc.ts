@@ -1,10 +1,13 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
+
 import getCookie from '../utils/pypasswaf';
-const host = 'http://aao.nuaa.edu.cn/';
+
+const host = 'https://aao.nuaa.edu.cn/';
 
 const map = new Map([
     ['tzgg', { title: '通知公告 | 南京航空航天大学教务处', suffix: '8222/list.htm' }],
@@ -31,8 +34,8 @@ export const route: Route = {
     maintainers: ['arcosx', 'Seiry', 'qrzbing', 'Xm798'],
     handler,
     description: `| 通知公告 | 教学服务 | 教学建设 | 学生培养 | 教学资源 |
-  | -------- | -------- | -------- | -------- | -------- |
-  | tzgg     | jxfw     | jxjs     | xspy     | jxzy     |`,
+| -------- | -------- | -------- | -------- | -------- |
+| tzgg     | jxfw     | jxjs     | xspy     | jxzy     |`,
 };
 
 async function handler(ctx) {
@@ -50,17 +53,17 @@ async function handler(ctx) {
     const response = await got(link, gotConfig);
     const $ = load(response.data);
 
-    const list = $('#wp_news_w8 ul li')
+    const list = $('#news_list .news_ul .p-list-item a')
         .slice(0, 10)
-        .map(function () {
+        .toArray()
+        .map((element) => {
             const info = {
-                title: $(this).find('a').text(),
-                link: $(this).find('a').attr('href'),
-                date: $(this).find('span').text(),
+                title: $(element).find('.text .title').text(),
+                link: $(element).attr('href'),
+                date: $(element).find('.date em').text() + '-' + $(element).find('.date span').text(),
             };
             return info;
-        })
-        .get();
+        });
 
     const out = await Promise.all(
         list.map(async (info) => {

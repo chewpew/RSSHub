@@ -1,14 +1,26 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
+import { ViewType } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
+
 import { parseItem } from './utils';
 
 export const route: Route = {
     path: '/hot-article/:type?',
     categories: ['finance'],
+    view: ViewType.Articles,
     example: '/gelonghui/hot-article',
-    parameters: { type: '`day` 为日排行，`week` 为周排行，默认为 `day`' },
+    parameters: {
+        type: {
+            description: '`day` 为日排行，`week` 为周排行，默认为 `day`',
+            options: [
+                { value: 'day', label: '日排行' },
+                { value: 'week', label: '周排行' },
+            ],
+        },
+    },
     features: {
         requireConfig: false,
         requirePuppeteer: false,
@@ -24,14 +36,14 @@ export const route: Route = {
         },
     ],
     name: '最热文章',
-    maintainers: [],
+    maintainers: ['nczitzk'],
     handler,
     url: 'gelonghui.com/',
 };
 
 async function handler(ctx) {
     const type = ctx.req.param('type') === 'week' ? 1 : 0;
-    const baseUrl = `https://www.gelonghui.com`;
+    const baseUrl = 'https://www.gelonghui.com';
     const { data: response } = await got(baseUrl);
     const $ = load(response);
 

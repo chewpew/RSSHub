@@ -1,9 +1,10 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
 export const route: Route = {
     path: '/:type?/:category?',
@@ -27,26 +28,26 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     description: `| Latest News | PC | Playstation | Nintendo | Xbox | Moblie |
-  | ----------- | -- | ----------- | -------- | ---- | ------ |
-  | latest-news | pc | playstation | nintendo | xbox | moblie |
+| ----------- | -- | ----------- | -------- | ---- | ------ |
+| latest-news | pc | playstation | nintendo | xbox | moblie |
 
-  Or
+Or
 
-  | GENERAL          | GENERAL EN         | MOBILE          | MOBILE EN         |
-  | ---------------- | ------------------ | --------------- | ----------------- |
-  | category/general | category/generalen | category/mobile | category/mobileen |
+| GENERAL          | GENERAL EN         | MOBILE          | MOBILE EN         |
+| ---------------- | ------------------ | --------------- | ----------------- |
+| category/general | category/generalen | category/mobile | category/mobileen |
 
-  | NINTENDO          | NINTENDO EN         | PC          | PC EN         |
-  | ----------------- | ------------------- | ----------- | ------------- |
-  | category/nintendo | category/nintendoen | category/pc | category/pcen |
+| NINTENDO          | NINTENDO EN         | PC          | PC EN         |
+| ----------------- | ------------------- | ----------- | ------------- |
+| category/nintendo | category/nintendoen | category/pc | category/pcen |
 
-  | PLAYSTATION          | PLAYSTATION EN         | REVIEWS          |
-  | -------------------- | ---------------------- | ---------------- |
-  | category/playstation | category/playstationen | category/reviews |
+| PLAYSTATION          | PLAYSTATION EN         | REVIEWS          |
+| -------------------- | ---------------------- | ---------------- |
+| category/playstation | category/playstationen | category/reviews |
 
-  | XBOX          | XBOX EN         |
-  | ------------- | --------------- |
-  | category/xbox | category/xboxen |`,
+| XBOX          | XBOX EN         |
+| ------------- | --------------- |
+| category/xbox | category/xboxen |`,
 };
 
 async function handler(ctx) {
@@ -85,8 +86,8 @@ async function handler(ctx) {
 
                 const content = load(detailResponse.data);
 
-                content('img').each(function () {
-                    content(this).attr('src', content(this).attr('data-src'));
+                content('img').each((_, el) => {
+                    content(el).attr('src', content(el).attr('data-src'));
                 });
 
                 item.author = content('.jeg_meta_author').text().replace(/by/, '');

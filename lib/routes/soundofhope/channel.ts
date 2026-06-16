@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
 
@@ -30,7 +31,7 @@ export const route: Route = {
     handler,
     description: `参数均可在官网获取，如：
 
-  \`https://www.soundofhope.org/term/203\` 对应 \`/soundofhope/term/203\``,
+\`https://www.soundofhope.org/term/203\` 对应 \`/soundofhope/term/203\``,
 };
 
 async function handler(ctx) {
@@ -42,11 +43,11 @@ async function handler(ctx) {
     const $ = load(response.data);
     const title = $('div.left > nav').text().split('/').slice(1).join('');
     const list = $('div.item')
-        .map((_, item) => ({
+        .toArray()
+        .map((item) => ({
             title: $(item).find('div.title').text(),
             link: new URL($(item).find('a').attr('href'), host).href,
-        }))
-        .get();
+        }));
 
     const items = await Promise.all(
         list.map((item) =>

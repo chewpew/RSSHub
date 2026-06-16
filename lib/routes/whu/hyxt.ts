@@ -1,10 +1,11 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 
-import { domain, processMeta, getMeta, processItems } from './util';
+import { domain, getMeta, processItems, processMeta } from './util';
 
 export const route: Route = {
     path: '/hyxt/:category{.+}?',
@@ -15,7 +16,7 @@ export const route: Route = {
 
 async function handler(ctx) {
     const { category = 'tzgg' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 30;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 30;
 
     const rootUrl = `https://hyxt.${domain}`;
     const currentUrl = new URL(`${category}.htm`, rootUrl).href;

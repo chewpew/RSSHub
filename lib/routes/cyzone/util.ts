@@ -1,5 +1,6 @@
-import got from '@/utils/got';
 import { load } from 'cheerio';
+
+import got from '@/utils/got';
 import { parseDate } from '@/utils/parse-date';
 
 const rootUrl = 'https://www.cyzone.cn';
@@ -18,7 +19,7 @@ const getInfo = (url, tryGet) =>
 
         const $ = load(response);
 
-        const avatar = $('img.avatar')?.prop('src')?.split('?')[0] ?? undefined;
+        const avatar = $('img.avatar')?.prop('src')?.split('?', 1)[0] ?? undefined;
         const icon = new URL($('link[rel="icon"]')?.prop('href'), rootUrl).href;
         const image = new URL($('div.logo img')?.prop('src'), rootUrl).href;
 
@@ -43,19 +44,17 @@ const getInfo = (url, tryGet) =>
  * @param {...Object} searchParams - The search parameter objects.
  * @returns {Promise<Array>}       - The processed item array.
  */
-const processItems = async (apiUrl, limit, tryGet, ...searchParams) => {
+const processItems = async (apiUrl, limit, tryGet, ...params) => {
     // Merge search parameters
-    searchParams = {
-        ...searchParams.reduce(
-            (result, object) => ({
-                ...result,
-                ...object,
-            }),
-            {}
-        ),
-
+    let searchParams = {
         size: limit,
     };
+    for (const param of params) {
+        searchParams = {
+            ...searchParams,
+            ...param,
+        };
+    }
 
     const { data: response } = await got(apiUrl, {
         searchParams,
@@ -66,7 +65,7 @@ const processItems = async (apiUrl, limit, tryGet, ...searchParams) => {
 
         return {
             title: item.title,
-            link: /^\/\//.test(item.url) ? `https:${item.url}` : item.url,
+            link: item.url.startsWith('//') ? `https:${item.url}` : item.url,
             description: item.description,
             category: [item.category_name, ...(item.tags?.split(',') ?? [])],
             guid: item.content_id,
@@ -90,11 +89,11 @@ const processItems = async (apiUrl, limit, tryGet, ...searchParams) => {
 
                 const content = load(data.content);
 
-                content('img').each(function () {
-                    if (content(this).prop('src')) {
-                        content(this).prop('src', content(this).prop('src').split('?')[0]);
+                content('img').each((_, el) => {
+                    if (content(el).prop('src')) {
+                        content(el).prop('src', content(el).prop('src').split('?', 1)[0]);
                     } else {
-                        content(this).remove();
+                        content(el).remove();
                     }
                 });
 
@@ -116,4 +115,4 @@ const processItems = async (apiUrl, limit, tryGet, ...searchParams) => {
     return items;
 };
 
-export { rootUrl, apiRootUrl, getInfo, processItems };
+export { apiRootUrl, getInfo, processItems, rootUrl };

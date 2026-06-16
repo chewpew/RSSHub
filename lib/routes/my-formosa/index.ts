@@ -1,8 +1,9 @@
-import { Route } from '@/types';
-import ofetch from '@/utils/ofetch';
 import { load } from 'cheerio';
-import { parseDate } from '@/utils/parse-date';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
+import ofetch from '@/utils/ofetch';
+import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
 
 export const route: Route = {
@@ -29,11 +30,10 @@ export const route: Route = {
     url: 'my-formosa.com',
 };
 
-function fetch(url) {
-    return ofetch(url, { responseType: 'arrayBuffer' }).then((raw) => {
-        const decoder = new TextDecoder('big5');
-        return decoder.decode(raw);
-    });
+async function fetch(url) {
+    const raw = await ofetch(url, { responseType: 'arrayBuffer' });
+    const decoder = new TextDecoder('big5');
+    return decoder.decode(raw);
 }
 
 async function handler() {
@@ -56,7 +56,7 @@ async function handler() {
                     const res = await fetch(link);
                     const $ = load(res);
 
-                    const isTV = /^\/TV/.test(new URL(link).pathname);
+                    const isTV = new URL(link).pathname.startsWith('/TV');
 
                     return {
                         title,

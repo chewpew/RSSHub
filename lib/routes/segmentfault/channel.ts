@@ -1,8 +1,10 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import { host, acw_sc__v2, parseList, parseItems } from './utils';
+
+import { acw_sc__v2, host, parseItems, parseList } from './utils';
 
 export const route: Route = {
     path: '/channel/:name',
@@ -37,7 +39,7 @@ async function handler(ctx) {
             query: 'channel',
             slug: name,
             offset: 0,
-            size: ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 20,
+            size: ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 20,
             mode: 'scrollLoad',
         },
     });

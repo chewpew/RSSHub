@@ -1,8 +1,8 @@
-import { Route } from '@/types';
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
 
-import { rootUrl, getData, processItems } from './util';
+import { getData, processItems, rootUrl } from './util';
 
 export const route: Route = {
     path: '/rank/:category?',
@@ -21,18 +21,18 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     description: `| 分类     | id         |
-  | -------- | ---------- |
-  | 总榜     | all        |
-  | 精选榜   | staffPicks |
-  | 广告     | ad         |
-  | 宣传片   | publicity  |
-  | 创意     | creative   |
-  | 干货教程 | backstage  |`,
+| -------- | ---------- |
+| 总榜     | all        |
+| 精选榜   | staffPicks |
+| 广告     | ad         |
+| 宣传片   | publicity  |
+| 创意     | creative   |
+| 干货教程 | backstage  |`,
 };
 
 async function handler(ctx) {
     const { category = 'all' } = ctx.req.param();
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 60;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 60;
 
     const apiRankUrl = new URL(`api/xpc/v2/rank/${category}`, rootUrl).href;
 

@@ -1,12 +1,13 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
 export const route: Route = {
-    path: '/shaanxi/kjt/:id?',
+    path: '/kjt/:id?',
     categories: ['government'],
     example: '/gov/shaanxi/kjt',
     parameters: { id: '分类，见下表，默认为通知公告' },
@@ -22,8 +23,8 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     description: `| 科技头条 | 工作动态 | 基层科技 | 科技博览 | 媒体聚焦 | 通知公告 |
-  | -------- | -------- | -------- | -------- | -------- | -------- |
-  | 1061     | 24       | 27       | 25       | 28       | 221      |`,
+| -------- | -------- | -------- | -------- | -------- | -------- |
+| 1061     | 24       | 27       | 25       | 28       | 221      |`,
 };
 
 async function handler(ctx) {

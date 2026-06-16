@@ -1,6 +1,7 @@
-import { Route, DataItem } from '@/types';
-import cache from '@/utils/cache';
 import { load } from 'cheerio';
+
+import type { DataItem, Route } from '@/types';
+import cache from '@/utils/cache';
 import ofetch from '@/utils/ofetch';
 
 const typeMap = {
@@ -22,9 +23,9 @@ export const route: Route = {
         supportPodcast: false,
         supportScihub: false,
     },
-    description: `| 协会动态 | 通知公告 |行业动态 |
-    | -------- | ------------ | -------- |
-    | dynamic | announcement | industry |`,
+    description: `| 协会动态 | 通知公告     | 行业动态 |
+| -------- | ------------ | -------- |
+| dynamic  | announcement | industry |`,
 
     name: '新闻资讯',
     maintainers: ['HChenZi'],
@@ -44,7 +45,7 @@ export const route: Route = {
                     title: a.attr('title'),
                 };
             });
-        const items = (await Promise.all(list.map(getFeedItem))) as DataItem[];
+        const items = (await Promise.all(list.map((elem) => getFeedItem(elem)))) as DataItem[];
         return {
             title: typeMap[type],
             link: url,

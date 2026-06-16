@@ -1,7 +1,8 @@
 import { load } from 'cheerio';
+
+import type { DataItem, Route } from '@/types';
 import cache from '@/utils/cache';
 import ofetch from '@/utils/ofetch';
-import type { Route, DataItem } from '@/types';
 
 export const route: Route = {
     path: '/article/:id',
@@ -35,15 +36,17 @@ export const route: Route = {
 async function handler(ctx) {
     const { id } = ctx.req.param();
     const link = `https://m.51read.org/xiaoshuo/${id}`;
-    const $book = load(await ofetch(link));
+    const bookHtml = await ofetch(link);
+    const $book = load(bookHtml);
 
     const chapter = `https://m.51read.org/zhangjiemulu/${id}`;
-    const $chapter = load(await ofetch(chapter));
+    const chapterHtml = await ofetch(chapter);
+    const $chapter = load(chapterHtml);
 
     const pageLength = $chapter('.ml-page select')
         .find('option')
-        .map((_, option) => option.attribs.value)
-        .toArray().length;
+        .toArray()
+        .map((option) => option.attribs.value).length;
 
     const item = await createItem(chapter, pageLength);
 
@@ -60,11 +63,12 @@ async function handler(ctx) {
 
 const createItem = async (baseUrl: string, page: number) => {
     const url = `${baseUrl}/${page}`;
-    const $latest = load(await ofetch(url));
+    const html = await ofetch(url);
+    const $latest = load(html);
     const item = await Promise.all(
         $latest('.kb-jp li>a')
-            .map((_, chapter) => buildItem(chapter.attribs.href))
             .toArray()
+            .map((chapter) => buildItem(chapter.attribs.href))
             .toReversed()
     );
     return item;
@@ -72,7 +76,8 @@ const createItem = async (baseUrl: string, page: number) => {
 
 const buildItem = (url: string) =>
     cache.tryGet(url, async () => {
-        const $ = load(await ofetch(url));
+        const html = await ofetch(url);
+        const $ = load(html);
 
         return {
             title: $('h1').text(),

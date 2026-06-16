@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
 import parser from '@/utils/rss-parser';
+
 import utils from './utils';
 
 export const route: Route = {
@@ -48,8 +49,10 @@ async function handler(ctx) {
 
     const feed = await parser.parseURL(link);
 
+    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit')) : 10;
+
     const items = await Promise.all(
-        feed.items.splice(0, ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit')) : 10).map((item) =>
+        feed.items.splice(0, limit).map((item) =>
             cache.tryGet(item.link, async () => {
                 const response = await got({
                     method: 'get',

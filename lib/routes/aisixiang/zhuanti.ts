@@ -1,11 +1,12 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
-import timezone from '@/utils/timezone';
 import { parseDate } from '@/utils/parse-date';
+import timezone from '@/utils/timezone';
 
-import { rootUrl, ossUrl, ProcessFeed } from './utils';
+import { ossUrl, ProcessFeed, rootUrl } from './utils';
 
 export const route: Route = {
     path: '/zhuanti/:id',
@@ -23,14 +24,14 @@ export const route: Route = {
     name: '专题',
     maintainers: ['nczitzk'],
     handler,
-    description: `:::tip
-  更多专题请见 [关键词](http://www.aisixiang.com/zhuanti/)
-  :::`,
+    description: `::: tip
+更多专题请见 [关键词](http://www.aisixiang.com/zhuanti/)
+:::`,
 };
 
 async function handler(ctx) {
     const id = ctx.req.param('id');
-    const limit = ctx.req.query('limit') ? Number.parseInt(ctx.req.query('limit'), 10) : 30;
+    const limit = ctx.req.query('limit') ? Number(ctx.req.query('limit')) : 30;
 
     const currentUrl = new URL(`zhuanti/${id}.html`, rootUrl).href;
 
@@ -51,7 +52,7 @@ async function handler(ctx) {
             return {
                 title: a.text(),
                 link: new URL(a.prop('href'), rootUrl).href,
-                author: a.text().split('：')[0],
+                author: a.text().split('：', 1)[0],
                 pubDate: timezone(parseDate(item.find('span').text()), +8),
             };
         });

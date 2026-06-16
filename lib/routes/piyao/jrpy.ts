@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 
 const rootUrl = 'https://www.piyao.org.cn';
@@ -36,11 +37,11 @@ async function handler() {
     const response = await got(currentUrl);
     const $ = load(response.data);
     const list = $('ul#list li')
-        .map((_, item) => ({
+        .toArray()
+        .map((item) => ({
             title: $(item).find('a').text(),
             link: new URL($(item).find('a').attr('href'), rootUrl).href,
-        }))
-        .get();
+        }));
 
     const items = await Promise.all(
         list.map((item) =>
@@ -50,7 +51,7 @@ async function handler() {
 
                 item.title = content('div.con_tit > h2').text();
                 item.description = content('div.con_txt').html();
-                item.pubDate = parseDate(content('div.con_tit > p > span').text().split('时间：')[1]);
+                item.pubDate = parseDate(content('div.con_tit > p > span').text().split('时间：', 2)[1]);
 
                 return item;
             })

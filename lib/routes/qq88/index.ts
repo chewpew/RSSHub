@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 
 export const route: Route = {
@@ -21,8 +22,8 @@ export const route: Route = {
     maintainers: ['nczitzk'],
     handler,
     description: `| 首页 | オトナの土ドラ | 日剧 | 日剧 SP |
-  | ---- | -------------- | ---- | ------- |
-  |      | 10             | 5    | 11      |`,
+| ---- | -------------- | ---- | ------- |
+|      | 10             | 5    | 11      |`,
 };
 
 async function handler(ctx) {
@@ -40,16 +41,16 @@ async function handler(ctx) {
 
     const list = $('.entry-title a')
         .slice(0, 15)
-        .map((_, item) => {
+        .toArray()
+        .map((item) => {
             item = $(item);
 
             return {
                 title: item.text(),
                 link: item.attr('href'),
-                pubDate: parseDate(item.parent().next().find('.mh-meta-date').eq(-1).text().split('：')[1]),
+                pubDate: parseDate(item.parent().next().find('.mh-meta-date').eq(-1).text().split('：', 2)[1]),
             };
-        })
-        .get();
+        });
 
     const items = await Promise.all(
         list.map((item) =>
@@ -66,8 +67,8 @@ async function handler(ctx) {
                 item.enclosure_url = links.eq(-1).attr('href');
                 item.description = `<video controls><source src="${item.enclosure_url}"></video><br>`;
 
-                links.each(function () {
-                    item.description += `<li><a href="${content(this).attr('href')}">${content(this).text()}</a></li>`;
+                links.each((_, el) => {
+                    item.description += `<li><a href="${content(el).attr('href')}">${content(el).text()}</a></li>`;
                 });
 
                 return item;

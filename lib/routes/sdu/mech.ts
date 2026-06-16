@@ -1,7 +1,8 @@
-import { Route } from '@/types';
+import { load } from 'cheerio';
+
+import type { Route } from '@/types';
 import cache from '@/utils/cache';
 import got from '@/utils/got';
-import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 import timezone from '@/utils/timezone';
 
@@ -26,8 +27,8 @@ export const route: Route = {
     maintainers: ['Ji4n1ng'],
     handler,
     description: `| 通知公告 | 院所新闻 | 教学信息 | 学术动态 | 学院简报 |
-  | -------- | -------- | -------- | -------- | -------- |
-  | 0        | 1        | 2        | 3        | 4        |`,
+| -------- | -------- | -------- | -------- | -------- |
+| 0        | 1        | 2        | 3        | 4        |`,
 };
 
 async function handler(ctx) {
@@ -38,15 +39,14 @@ async function handler(ctx) {
     const $ = load(response.data);
 
     let item = $('#page_list li a')
-        .slice(0, 1)
-        .map((_, e) => {
+        .toArray()
+        .map((e) => {
             e = $(e);
             return {
                 title: e.attr('title'),
                 link: e.attr('href'),
             };
-        })
-        .get();
+        });
 
     item = await Promise.all(
         item
@@ -61,7 +61,7 @@ async function handler(ctx) {
                     const $ = load(response.data);
 
                     const info = $('#show_info').text().split(/\s{4}/);
-                    const date = info[0].split('：')[1];
+                    const date = info[0].split('：', 2)[1];
 
                     item.title = $('#show_title').text().trim();
                     item.author = info[1].replace('作者：', '') || '山东大学机械工程学院';
